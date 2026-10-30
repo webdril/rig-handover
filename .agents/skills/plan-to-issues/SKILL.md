@@ -15,7 +15,13 @@ in a shell this agent can run.
    One issue per unit of work.
 3. **Stop and show the table to the human.** Publish nothing until they approve it.
 4. Ask the human what every issue here must carry (fields, labels, wording), unless it is
-   already written down in this session or in the repo.
+   already written down in this session or in the repo. The repo's baseline, from the
+   morning-digest plan (2026-10-29):
+   - The body opens with `Source: plan.md § <n>`.
+   - The issue is tagged `plan:<plan name>` (e.g. `plan:morning-digest`); create the label once.
+   - Then Scope, Done when and Blocked by, as in step 2.
+   - An issue that waits on a person (a review, a sign-off) names them under Blocked by and stays
+     open until they have acted. Sending them something is not done.
 5. Create each issue in dependency order, so blocked-by can cite real numbers:
 
    ```sh
