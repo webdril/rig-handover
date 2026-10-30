@@ -32,5 +32,16 @@ export function createApp(config: RigConfig = loadConfig()) {
     }
   });
 
+  app.get('/api/digest/:night', (c) => {
+    try {
+      const night = readNight(config.runsDir, c.req.param('night'));
+      if (night === null) return c.json({ error: 'no such night' }, 404);
+      return c.json({ night: night.night, rows: night.rows, badLines: night.badLines });
+    } catch (err) {
+      console.error('digest json: read failed', err instanceof Error ? err.name : 'unknown');
+      return c.json({ error: 'could not read night' }, 500);
+    }
+  });
+
   return app;
 }
