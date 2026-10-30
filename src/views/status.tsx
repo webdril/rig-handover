@@ -19,16 +19,16 @@ export function StatusBoard({ status }: { status: Status }) {
         <p class="mute">nothing in runs/</p>
       ) : (
         <ul>
-          {status.nights.map((n) => (
-            <li>
-              <a href={`/digest/${n}`}>{n}</a>{' '}
-              <span class="mute">
-                {status.counts[n]
-                  ? `${status.counts[n].ok} ok / ${status.counts[n].retry} retry / ${status.counts[n].fail} fail`
-                  : '—'}
-              </span>
-            </li>
-          ))}
+          {status.nights.map((n) => {
+            // A night that can't be read gets no link: its digest wouldn't render.
+            const c = status.counts[n];
+            return (
+              <li>
+                {c ? <a href={`/digest/${n}`}>{n}</a> : n}{' '}
+                <span class="mute">{c ? `${c.ok} ok / ${c.retry} retry / ${c.fail} fail` : '—'}</span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </>

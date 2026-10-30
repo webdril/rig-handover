@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -24,12 +24,17 @@ describe('status board', () => {
     expect(html).toContain('10 ok / 4 retry / 1 fail');
   });
 
-  it('lists a night with unreadable counts as —', async () => {
+  it('lists a night it cannot read as — and without a link', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'rig-'));
-    mkdirSync(join(dir, '2026-01-01.jsonl'));
-    const html = await (await createApp({ ...config, runsDir: dir }).request('/')).text();
-    expect(html).toContain('href="/digest/2026-01-01"');
-    expect(html).toContain('—');
+    try {
+      mkdirSync(join(dir, '2026-01-01.jsonl'));
+      const html = await (await createApp({ ...config, runsDir: dir }).request('/')).text();
+      expect(html).toContain('2026-01-01');
+      expect(html).not.toContain('href="/digest/2026-01-01"');
+      expect(html).toContain('—');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   it('health answers with the lane id', async () => {

@@ -95,3 +95,19 @@ describe('readNight in a temp runs dir', () => {
     ]);
   });
 });
+
+describe('readNight owner', () => {
+  it('keeps the last known owner when a later line has none', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'rig-owner-'));
+    try {
+      writeFileSync(
+        join(dir, '2026-02-01.jsonl'),
+        '{"at":"2026-02-01T01:00:00+01:00","job":"a","status":"ok","owner":"rook"}\n' +
+          '{"at":"2026-02-01T02:00:00+01:00","job":"a","status":"ok","owner":null}\n',
+      );
+      expect(readNight(dir, '2026-02-01')?.rows[0]?.owner).toBe('rook');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});

@@ -27,7 +27,8 @@ export function createApp(config: RigConfig = loadConfig()) {
       const night = readNight(config.runsDir, c.req.param('night'));
       if (night === null) return c.html(page('not found', <DigestMessage title="not found" text="No digest for that night." />), 404);
       return c.html(page(`digest ${night.night}`, <DigestPage night={night} />));
-    } catch {
+    } catch (err) {
+      console.error('digest page: read failed', err instanceof Error ? err.name : 'unknown');
       return c.html(page('error', <DigestMessage title="error" text="Something went wrong." />), 500);
     }
   });

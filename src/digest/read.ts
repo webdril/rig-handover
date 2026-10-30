@@ -40,20 +40,30 @@ function readFileOrNull(path: string): string | null {
   }
 }
 
-export const readNight: ReadNight = (runsDir, night) => {
+// The one reader of a night's file: parsed lines in file order, bad lines counted. null when the
+// night isn't a date or has no file; any other read error is thrown.
+export function readLines(runsDir: string, night: string): { lines: RunLine[]; badLines: number } | null {
   if (!NIGHT_PATTERN.test(night)) return null;
   const text = readFileOrNull(join(runsDir, `${night}.jsonl`));
   if (text === null) return null;
 
-  const byJob = new Map<string, DigestRow>();
+  const lines: RunLine[] = [];
   let badLines = 0;
   for (const raw of text.split('\n')) {
     if (raw.trim() === '') continue;
     const line = parseLine(raw);
-    if (line === null) {
-      badLines += 1;
-      continue;
-    }
+    if (line === null) badLines += 1;
+    else lines.push(line);
+  }
+  return { lines, badLines };
+}
+
+export const readNight: ReadNight = (runsDir, night) => {
+  const read = readLines(runsDir, night);
+  if (read === null) return null;
+
+  const byJob = new Map<string, DigestRow>();
+  for (const line of read.lines) {
     const row = byJob.get(line.job);
     const isRetry = line.status === 'retry' ? 1 : 0;
     if (row === undefined) {
@@ -68,7 +78,7 @@ export const readNight: ReadNight = (runsDir, night) => {
         lastAt: line.at,
       });
     } else {
-      row.owner = line.owner;
+      row.owner = line.owner ?? row.owner; // a later line without an owner doesn't erase it
       row.runs += 1;
       row.retries += isRetry;
       row.lastStatus = line.status;
@@ -78,5 +88,5 @@ export const readNight: ReadNight = (runsDir, night) => {
   }
 
   const rows = [...byJob.values()].sort((a, b) => (a.job < b.job ? -1 : a.job > b.job ? 1 : 0));
-  return { night, rows, badLines };
+  return { night, rows, badLines: read.badLines };
 };
